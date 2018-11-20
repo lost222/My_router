@@ -27,6 +27,7 @@ INCLUDEPATH += C:\\code\\winpcap_sdk\\WpdPack\\Include\\
 LIBS += WS2_32.lib
 LIBS += C:\\code\\winpcap_sdk\\WpdPack\\Lib\\wpcap.lib
 LIBS += C:\\code\\winpcap_sdk\\WpdPack\\Lib\\Packet.lib
+LIBS += -lws2_32
 CONFIG += no_lflags_merge
 
 DEFINES += WPCAP

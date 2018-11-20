@@ -3,6 +3,8 @@
 
 #include <QObject>
 #include <QThread>
+#include "getinfo.h"
+
 class MyThread : public QThread
 {
     Q_OBJECT
@@ -10,6 +12,8 @@ public:
     explicit MyThread(QObject *parent = 0);
     void stop();
     void set_listen_dev(int devid);
+    int get_dev(){return listen_dev;}
+    GETINFO* p_Info;
 protected:
     void run();
 private:

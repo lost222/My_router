@@ -41,25 +41,3 @@ QVector<QString> GETINFO::desc_list()
             }
     return result;
 }
-
-pcap_t *GETINFO::open_dev(int i)
-{
-     pcap_t* result_dev = NULL;
-     d = alldevs;
-     for(int j=0; j<i;j++)
-     {
-        d = d->next;
-     }
-     if ( (result_dev= pcap_open(d->name,          // name of the device
-                                   65536,            // portion of the packet to capture.
-                                                     // 65536 guarantees that the whole packet will be captured on all the link layers
-                                   PCAP_OPENFLAG_PROMISCUOUS,    // promiscuous mode
-                                   1000,             // read timeout
-                                   NULL,             // authentication on the remote machine
-                                   errbuf            // error buffer
-                                   ) ) == NULL)
-         {
-             return NULL;
-         }
-     return result_dev;
-}
