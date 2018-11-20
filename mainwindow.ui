@@ -15,57 +15,50 @@
   </property>
   <widget class="QWidget" name="centralWidget">
    <layout class="QGridLayout" name="gridLayout">
+    <item row="1" column="1">
+     <widget class="QPushButton" name="stopButton">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
+      <property name="text">
+       <string>STOP</string>
+      </property>
+     </widget>
+    </item>
     <item row="0" column="0" rowspan="3">
      <layout class="QHBoxLayout" name="horizontalLayout">
       <item>
        <layout class="QVBoxLayout" name="verticalLayout">
         <item>
-         <widget class="QLabel" name="label">
+         <widget class="QLabel" name="label_devs">
           <property name="text">
            <string>TextLabel</string>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QListWidget" name="listWidget"/>
+         <widget class="QListWidget" name="dev_list"/>
         </item>
        </layout>
       </item>
       <item>
        <layout class="QVBoxLayout" name="verticalLayout_3">
         <item>
-         <widget class="QLabel" name="label_2">
+         <widget class="QLabel" name="label_desc">
           <property name="text">
            <string>TextLabel</string>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QListWidget" name="listWidget_2"/>
+         <widget class="QTextBrowser" name="desc_info"/>
         </item>
        </layout>
       </item>
      </layout>
     </item>
-    <item row="0" column="1">
-     <widget class="QPushButton" name="pushButton">
-      <property name="maximumSize">
-       <size>
-        <width>80</width>
-        <height>16777215</height>
-       </size>
-      </property>
-      <property name="text">
-       <string>PushButton</string>
-      </property>
-     </widget>
-    </item>
-    <item row="1" column="1">
-     <widget class="QPushButton" name="pushButton_2">
-      <property name="text">
-       <string>PushButton</string>
-      </property>
-     </widget>
+    <item row="3" column="0" colspan="2">
+     <widget class="QLineEdit" name="lineEdit"/>
     </item>
     <item row="2" column="1">
      <widget class="QPushButton" name="pushButton_3">
@@ -74,11 +67,15 @@
       </property>
      </widget>
     </item>
-    <item row="3" column="0" colspan="2">
-     <widget class="QLineEdit" name="lineEdit"/>
+    <item row="0" column="1">
+     <widget class="QPushButton" name="startButton">
+      <property name="text">
+       <string>START</string>
+      </property>
+     </widget>
     </item>
     <item row="4" column="0" colspan="2">
-     <widget class="QListView" name="listView"/>
+     <widget class="QListWidget" name="info_list"/>
     </item>
    </layout>
   </widget>

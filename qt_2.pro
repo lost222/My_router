@@ -14,10 +14,12 @@ TEMPLATE = app
 
 SOURCES += main.cpp\
         mainwindow.cpp \
-    getinfo.cpp
+    getinfo.cpp \
+    mytread.cpp
 
 HEADERS  += mainwindow.h \
-    getinfo.h
+    getinfo.h \
+    mytread.h
 
 FORMS    += mainwindow.ui
 

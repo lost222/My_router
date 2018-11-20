@@ -22,6 +22,8 @@ private:
 public:
     GETINFO();
     QVector<QString> dev_list();
+    QVector<QString> desc_list();
+
 };
 
 

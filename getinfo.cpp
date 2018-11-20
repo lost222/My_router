@@ -15,11 +15,21 @@ QVector<QString> GETINFO::dev_list()
 {
     // 没有申请内存,不知道会有什么情况
     QVector<QString> result;
-    int j = 0;
+
     for(d=alldevs; d; d=d->next)
         {
 //            printf("%d. %s", ++i, d->name);
         QString i = QString(d->name);
+        result<<i;
+    }
+    return result;
+}
+
+QVector<QString> GETINFO::desc_list()
+{
+    QVector<QString> result;
+    for(d=alldevs;d;d=d->next){
+        QString i = "";
         if(d->description)
             {
                 i =i + QString(d->description) + "\n";
