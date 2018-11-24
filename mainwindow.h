@@ -16,6 +16,7 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(QWidget *parent = 0);
     GETINFO Info;
+    void sendARP(unsigned int IP_Address);
     ~MainWindow();
 
 private slots:
@@ -26,6 +27,10 @@ private slots:
     void on_stopButton_clicked();
 
     void changeString(const QString &);
+
+    void on_GetButton_clicked();
+
+    void on_BackButton_clicked();
 
 private:
     Ui::MainWindow *ui;

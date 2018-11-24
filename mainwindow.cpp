@@ -1,7 +1,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "getinfo.h"
-
+#include<iostream>
 
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -10,6 +10,8 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
     ui->label_devs->setText("DEVS");
+    ui->label_desc->setText("Describe Info");
+    ui->label_ipinput->setText("INPUT IP");
 //    GETINFO Info;
     QVector<QString> dev_list = Info.dev_list();
     for(int i=0; i<dev_list.size(); i++){
@@ -33,30 +35,100 @@ MainWindow::~MainWindow()
 void MainWindow::on_dev_list_currentRowChanged(int currentRow)
 {
     QVector<QString> dev_decs = Info.desc_list();
-    ui->desc_info->setText(dev_decs[currentRow]);
+
     thread.set_listen_dev(currentRow);
     QString str = QString("Listening ON DEV %1").arg(currentRow);
     ui->info_list->insertItem(out2line++,str);
+
+    QMap<QString, unsigned int> ip_data = Info.get_IP_data(currentRow);
+    QString out = dev_decs[currentRow];
+    ui->desc_info->setText(out);
+    QMap<QString, unsigned int>::iterator i;
+    for(i=ip_data.begin(); i != ip_data.end(); i++){
+        out.sprintf("%s : %s", i.key().toStdString().c_str(), Info.iptos(i.value()));
+        ui->desc_info->append(out);
+    }
+    unsigned int ip_addr = ip_data["Address"];
+    QVector<BYTE> mac = Info.ip2mac(ip_addr);
+    out.sprintf("MAC : %x-%x-%x-%x-%x-%x", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+    ui->desc_info->append(out);
+
 }
 
-void MainWindow::on_startButton_clicked()
-{
-    thread.start();
-    ui->startButton->setEnabled(false);
-    ui->stopButton->setEnabled(true);
 
-}
-
-void MainWindow::on_stopButton_clicked()
+void MainWindow::sendARP(unsigned int IP_Address)
 {
-    if (thread.isRunning()) {
-            thread.stop();
-            ui->startButton->setEnabled(true);
-            ui->stopButton->setEnabled(false);
-        }
+    QMap<QString, unsigned int> ip_info = Info.get_IP_data(thread.get_dev());
+
+    // send ARP INFO
+    ARPFrame_t ARPFrame;
+    //// ARPFrame.FrameHeade
+    BYTE* p = ARPFrame.FrameHeade.DesMAC;
+    for(int i=0; i<6;i++){
+        p[i] = 0xFF;
+    }
+    p = ARPFrame.FrameHeade.SrcMAC;
+    QVector<BYTE> the_mac = Info.ip2mac(ip_info["Address"]);
+    for(int i=0; i<6;i++){
+        p[i] = the_mac[i];
+    }
+    ARPFrame.FrameHeade.FrameType = htons(0x0806);
+
+    //// ARP DATA
+    ARPFrame.HardwareType = htons(0x0001);
+    ARPFrame.ProtocolType = htons(0x0800); // 0x0816 ??
+    ARPFrame.HLen = 6;  // MAC addr len
+    ARPFrame.PLen = 4;  // IP addr len
+    ARPFrame.Opareation = htons(0x0001);
+
+    ARPFrame.SendIP = ip_info["Address"];
+    p = ARPFrame.SendHa;
+    for(int i=0; i<6;i++){
+        p[i] = p[i] = the_mac[i];
+    }
+
+    ARPFrame.RecvIP =htonl(IP_Address);
+    p = ARPFrame.recvHa;
+    for(int i=0; i<6;i++){
+        p[i] = 0x00;
+    }
+    // send data
+    pcap_t * dev = Info.open_dev(thread.get_dev());
+    if ( pcap_sendpacket(dev, (u_char *)&ARPFrame, sizeof(ARPFrame_t)) != 0)
+    {
+        std::cout<<"ERR SENDING"<<std::endl;
+    }else{
+        std::cout<<"GOOD SEND !"<<std::endl;
+    }
 }
 
 void MainWindow::changeString(const QString &str)
 {
     ui->info_list->insertItem(out2line++,str);
+}
+
+void MainWindow::on_GetButton_clicked()
+{
+    QString ip_str = ui->IP_input->text();
+    QStringList ips = ip_str.split('.');
+    unsigned int IP_Address = 0;
+    for(int i=0; i<4;i++){
+        IP_Address += ips[i].toInt()<<(24 - 8*i);
+    }
+    std::cout<<ip_str.toStdString()<<" "<<IP_Address<<std::endl;
+    this->sendARP(IP_Address);
+    thread.start();
+    ui->GetButton->setEnabled(false);
+    ui->BackButton->setEnabled(true);
+
+}
+
+void MainWindow::on_BackButton_clicked()
+{
+    if (thread.isRunning()) {
+        thread.stop();
+        ui->GetButton->setEnabled(true);
+        ui->BackButton->setEnabled(false);
+    }
+
 }

@@ -24,7 +24,8 @@ HEADERS  += mainwindow.h \
 FORMS    += mainwindow.ui
 
 INCLUDEPATH += C:\\code\\winpcap_sdk\\WpdPack\\Include\\
-LIBS += WS2_32.lib
+
+#LIBS += WS2_32.lib  need to fix here
 LIBS += C:\\code\\winpcap_sdk\\WpdPack\\Lib\\wpcap.lib
 LIBS += C:\\code\\winpcap_sdk\\WpdPack\\Lib\\Packet.lib
 LIBS += -lws2_32

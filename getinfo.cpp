@@ -1,6 +1,32 @@
 #include "getinfo.h"
 
 
+/* From tcptraceroute, convert a numeric IP address to a string */
+
+
+//char* ip6tos(struct sockaddr *sockaddr, char *address, int addrlen)
+//{
+////    socklen_t sockaddrlen;
+//    unsigned int sockaddrlen;
+//    #ifdef WIN32
+//    sockaddrlen = sizeof(struct sockaddr_in6);
+//    #else
+//    sockaddrlen = sizeof(struct sockaddr_storage);
+//    #endif
+
+
+//    if(getnameinfo(sockaddr,
+//        sockaddrlen,
+//        address,
+//        addrlen,
+//        NULL,
+//        0,
+//        NI_NUMERICHOST) != 0) address = NULL;
+
+//    return address;
+//}
+
+
 GETINFO::GETINFO()
 {
     if (pcap_findalldevs_ex(PCAP_SRC_IF_STRING, NULL, &alldevs, errbuf) == -1)
@@ -13,7 +39,7 @@ GETINFO::GETINFO()
 
 QVector<QString> GETINFO::dev_list()
 {
-    // 没有申请内存,不知道会有什么情况
+
     QVector<QString> result;
 
     for(d=alldevs; d; d=d->next)
@@ -62,4 +88,99 @@ pcap_t *GETINFO::open_dev(int i)
              return NULL;
          }
      return result_dev;
+}
+
+WORD GETINFO::cal_IP_checksum(Data_t * p_data)
+{
+    unsigned int sum=0;
+    BYTE* Start = (BYTE* )&(p_data->IPHeader);
+    for(int i=0; i< 10; i+=2){
+        // problem here
+        sum += *(Start+i+1)*256 + *(Start+i);
+    }
+    unsigned int outflow = sum >> 16;
+    while(outflow){
+        sum += outflow;
+        outflow = sum >> 16;
+    }
+    WORD result = (WORD) sum&0xffff;
+    return result;
+}
+
+QVector<BYTE> GETINFO::ip2mac(unsigned int ip){
+//    unsigned long mac=0;
+    QVector<BYTE> mac(6);
+    if (ip == 2195040448) {
+//        mac = '\x000c2947BF1F';
+        mac[0]=0x00; mac[1]=0x0c;mac[2]=0x29;mac[3]=0x47;mac[4]=0xBF;mac[5]=0x1F;
+
+    }else if (ip == 2161486016){
+//        mac = '\x000C2947BF15';
+        mac[0]=0x00; mac[1]=0x0c;mac[2]=0x29;mac[3]=0x47;mac[4]=0xBF;mac[5]=0x15;
+    }
+    return mac;
+}
+
+
+
+QMap<QString, unsigned int> GETINFO::get_IP_data(int i)
+{
+    d = alldevs;
+    QMap<QString, unsigned int> result;
+    for(int j=0; j<i;j++)
+    {
+       d = d->next;
+    }
+    /* IP addresses */
+    pcap_addr_t* a;
+    for(a=d->addresses;a;a=a->next) {
+      printf("\tAddress Family: #%d\n",a->addr->sa_family);
+
+      switch(a->addr->sa_family)
+      {
+        case AF_INET: // IPV4
+          printf("\tAddress Family Name: AF_INET\n");
+          if (a->addr){
+            printf("\tAddress: %s\n",iptos(((struct sockaddr_in *)a->addr)->sin_addr.s_addr));
+            result["Address"] = ((struct sockaddr_in *)a->addr)->sin_addr.s_addr;
+          }
+          if (a->netmask){
+            printf("\tNetmask: %s\n",iptos(((struct sockaddr_in *)a->netmask)->sin_addr.s_addr));
+            result["Netmask"] = ((struct sockaddr_in *)a->netmask)->sin_addr.s_addr;
+          }
+          if (a->broadaddr){
+            printf("\tBroadcast Address: %s\n",iptos(((struct sockaddr_in *)a->broadaddr)->sin_addr.s_addr));
+            result["BroadcastAddr"] =((struct sockaddr_in *)a->broadaddr)->sin_addr.s_addr;
+          }
+          if (a->dstaddr){
+            printf("\tDestination Address: %s\n",iptos(((struct sockaddr_in *)a->dstaddr)->sin_addr.s_addr));
+            result["DestinationAddr"] = ((struct sockaddr_in *)a->dstaddr)->sin_addr.s_addr;
+          }
+          break;
+
+        case AF_INET6:
+          printf("\tAddress Family Name: AF_INET6 need to be fixed here.\n");
+//          if (a->addr)
+//            printf("\tAddress: %s\n", ip6tos(a->addr, ip6str, sizeof(ip6str)));
+//         break;
+
+        default:
+          printf("\tAddress Family Name: Unknownn do nothing here\n");
+          break;
+      }
+    }
+    return result;
+}
+
+
+char* GETINFO::iptos(u_long in)
+{
+    static char output[IPTOSBUFFERS][3*4+3+1];
+    static short which;
+    u_char *p;
+
+    p = (u_char *)&in;
+    which = (which + 1 == IPTOSBUFFERS ? 0 : which + 1);
+    sprintf(output[which], "%d.%d.%d.%d", p[0], p[1], p[2], p[3]);
+    return output[which];
 }

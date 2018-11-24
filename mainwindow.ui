@@ -15,17 +15,7 @@
   </property>
   <widget class="QWidget" name="centralWidget">
    <layout class="QGridLayout" name="gridLayout">
-    <item row="1" column="1">
-     <widget class="QPushButton" name="stopButton">
-      <property name="enabled">
-       <bool>false</bool>
-      </property>
-      <property name="text">
-       <string>STOP</string>
-      </property>
-     </widget>
-    </item>
-    <item row="0" column="0" rowspan="3">
+    <item row="0" column="0" colspan="4">
      <layout class="QHBoxLayout" name="horizontalLayout">
       <item>
        <layout class="QVBoxLayout" name="verticalLayout">
@@ -57,25 +47,32 @@
       </item>
      </layout>
     </item>
-    <item row="3" column="0" colspan="2">
-     <widget class="QLineEdit" name="lineEdit"/>
+    <item row="1" column="0" colspan="4">
+     <widget class="QListWidget" name="info_list"/>
+    </item>
+    <item row="2" column="0">
+     <widget class="QLabel" name="label_ipinput">
+      <property name="text">
+       <string>TextLabel</string>
+      </property>
+     </widget>
     </item>
     <item row="2" column="1">
-     <widget class="QPushButton" name="pushButton_3">
+     <widget class="QLineEdit" name="IP_input"/>
+    </item>
+    <item row="2" column="2">
+     <widget class="QPushButton" name="GetButton">
       <property name="text">
-       <string>PushButton</string>
+       <string>GET</string>
       </property>
      </widget>
     </item>
-    <item row="0" column="1">
-     <widget class="QPushButton" name="startButton">
+    <item row="2" column="3">
+     <widget class="QPushButton" name="BackButton">
       <property name="text">
-       <string>START</string>
+       <string>BACK</string>
       </property>
      </widget>
-    </item>
-    <item row="4" column="0" colspan="2">
-     <widget class="QListWidget" name="info_list"/>
     </item>
    </layout>
   </widget>

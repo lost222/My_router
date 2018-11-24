@@ -16,11 +16,6 @@ void MyThread::run()
 //        qDebug() << QString("in MyThread: %1").arg(i++);
     {
         if (this->listen_dev < 0){ continue; }
-//        QString str = QString("in MyThread: %1\n").arg(i);
-//        str = str + QString("listening to: ") + QString(this->listen_dev);
-//               emit stringChanged(str);
-//               msleep(1000);
-//               i++;
         pcap_t* dev = p_Info->open_dev(this->listen_dev);
         if (dev == NULL)
         {
@@ -33,38 +28,31 @@ void MyThread::run()
         const u_char *pkt_data;
         time_t local_tv_sec;
         int res = 0;
-        Data_t* IPPacket;
 
+        ARPFrame_t* IPPacket;
         BYTE* DESMAC;BYTE* SRCMAC;
         WORD* Frame_type;
+        BYTE* r_mac;
+        DWORD r_ip;
 
         while((res = pcap_next_ex( dev, &header, &pkt_data)) >= 0 && !stopped){
                 if(res == 0)
                     /* Timeout elapsed */
                     continue;
 
-                /* convert the timestamp to readable format */
-                local_tv_sec = header->ts.tv_sec;
-                ltime=localtime(&local_tv_sec);
-                strftime( timestr, sizeof timestr, "%H:%M:%S", ltime);
-                IPPacket = (Data_t* ) pkt_data;
+                IPPacket = (ARPFrame_t* ) pkt_data;
                 DESMAC = IPPacket->FrameHeade.DesMAC;
                 SRCMAC = IPPacket->FrameHeade.SrcMAC;
-
                 Frame_type = &(IPPacket->FrameHeade.FrameType);
                 WORD Frame_type_real = ntohs(*Frame_type);
+                if (Frame_type_real != 0x0806) {continue;}
 
+                // get IP -> Mac
                 QString str = "";
-                str.sprintf("%s,%.6d len:%d\nDESMAC:%x %x %x %x %x %x  "
-                            "SRCMAC: %x %x %x %x %x %x\n"
-                            "FRAME TYPE : %x",
-                       timestr,
-                       (int)header->ts.tv_usec,
-                       header->len,
-                       DESMAC[0],DESMAC[1],DESMAC[2],DESMAC[3],DESMAC[4],DESMAC[5],
-                       SRCMAC[0],SRCMAC[1],SRCMAC[2],SRCMAC[3],SRCMAC[4],SRCMAC[5],
-                       Frame_type_real
-                      );
+                r_mac = (BYTE *)&(IPPacket->recvHa);
+                r_ip = IPPacket->RecvIP; //don't know why but no need to trans
+                str.sprintf("%s  -->  %x-%x-%x-%x-%x-%x",p_Info->iptos(r_ip),
+                            r_mac[0], r_mac[1], r_mac[2], r_mac[3], r_mac[4], r_mac[5]);
                 emit stringChanged(str);
             }
             if(res == -1){
