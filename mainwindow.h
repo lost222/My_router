@@ -16,6 +16,7 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(QWidget *parent = 0);
     GETINFO Info;
+    void sendARP_base(unsigned int sendIP, QVector<BYTE> sendMac, unsigned int recvIP);
     void sendARP(unsigned int IP_Address);
     ~MainWindow();
 

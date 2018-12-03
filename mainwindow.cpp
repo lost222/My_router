@@ -55,10 +55,9 @@ void MainWindow::on_dev_list_currentRowChanged(int currentRow)
 
 }
 
-
-void MainWindow::sendARP(unsigned int IP_Address)
+void MainWindow::sendARP_base(unsigned int sendIP, QVector<BYTE> sendMac, unsigned int recvIP)
 {
-    QMap<QString, unsigned int> ip_info = Info.get_IP_data(thread.get_dev());
+    //QMap<QString, unsigned int> ip_info = Info.get_IP_data(thread.get_dev());
 
     // send ARP INFO
     ARPFrame_t ARPFrame;
@@ -68,26 +67,28 @@ void MainWindow::sendARP(unsigned int IP_Address)
         p[i] = 0xFF;
     }
     p = ARPFrame.FrameHeade.SrcMAC;
-    QVector<BYTE> the_mac = Info.ip2mac(ip_info["Address"]);
+//    QVector<BYTE> the_mac = Info.ip2mac(ip_info["Address"]);
     for(int i=0; i<6;i++){
-        p[i] = the_mac[i];
+        p[i] = sendMac[i];
     }
     ARPFrame.FrameHeade.FrameType = htons(0x0806);
 
     //// ARP DATA
     ARPFrame.HardwareType = htons(0x0001);
-    ARPFrame.ProtocolType = htons(0x0800); // 0x0816 ??
+    ARPFrame.ProtocolType = htons(0x0800); //
     ARPFrame.HLen = 6;  // MAC addr len
     ARPFrame.PLen = 4;  // IP addr len
     ARPFrame.Opareation = htons(0x0001);
 
-    ARPFrame.SendIP = ip_info["Address"];
+//    ARPFrame.SendIP = ip_info["Address"];
+    ARPFrame.SendIP = htonl(sendIP);
+
     p = ARPFrame.SendHa;
     for(int i=0; i<6;i++){
-        p[i] = p[i] = the_mac[i];
+        p[i] = p[i] = sendMac[i];
     }
 
-    ARPFrame.RecvIP =htonl(IP_Address);
+    ARPFrame.RecvIP =htonl(recvIP);
     p = ARPFrame.recvHa;
     for(int i=0; i<6;i++){
         p[i] = 0x00;
@@ -100,6 +101,15 @@ void MainWindow::sendARP(unsigned int IP_Address)
     }else{
         std::cout<<"GOOD SEND !"<<std::endl;
     }
+}
+
+void MainWindow::sendARP(unsigned int IP_Address)
+{
+    QMap<QString, unsigned int> ip_info = Info.get_IP_data(thread.get_dev());
+    QVector<BYTE> send_mac = Info.ip2mac(ip_info["Address"]);
+    unsigned int sendIP = ip_info["Address"];
+    sendARP_base(sendIP,send_mac, IP_Address);
+
 }
 
 void MainWindow::changeString(const QString &str)
