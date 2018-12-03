@@ -50,7 +50,19 @@ void MyThread::run()
                 // get IP -> Mac
                 QString str = "";
                 r_mac = (BYTE *)&(IPPacket->recvHa);
+                bool is_ze = true;
+                for(int i=0;i<6;i++){
+                    if(r_mac[i] != 0){is_ze = false;}
+                }
+                if(is_ze){continue;}
                 r_ip = IPPacket->RecvIP; //don't know why but no need to trans
+
+                if ( p_Info->ip_to_mac.contains(r_ip) ){continue;}
+                QVector<BYTE> mac_vec(6);
+                for(int i=0; i<6;i++){
+                    mac_vec[i] = r_mac[i];
+                }
+                p_Info->ip_to_mac[r_ip] = mac_vec;
                 str.sprintf("%s  -->  %x-%x-%x-%x-%x-%x",p_Info->iptos(r_ip),
                             r_mac[0], r_mac[1], r_mac[2], r_mac[3], r_mac[4], r_mac[5]);
                 emit stringChanged(str);

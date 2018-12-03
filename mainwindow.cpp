@@ -106,15 +106,27 @@ void MainWindow::sendARP_base(unsigned int sendIP, QVector<BYTE> sendMac, unsign
 void MainWindow::sendARP(unsigned int IP_Address)
 {
     QMap<QString, unsigned int> ip_info = Info.get_IP_data(thread.get_dev());
-    QVector<BYTE> send_mac = Info.ip2mac(ip_info["Address"]);
     unsigned int sendIP = ip_info["Address"];
+    //QVector<BYTE> send_mac = Info.ip2mac(ip_info["Address"]);
+    QVector<BYTE> send_mac_ram(6);
+    for(int i=0;i<6;i++){
+        send_mac_ram[i] = 0x0f;
+    }
+    sendARP_base(0xf0f00,send_mac_ram,sendIP);
+    thread.start();
+    while(!(this->Info.ip_to_mac.contains(sendIP))); //busy wait
+    QVector<BYTE> send_mac = Info.ip_to_mac.value(sendIP);
+
     sendARP_base(sendIP,send_mac, IP_Address);
 
 }
 
 void MainWindow::changeString(const QString &str)
 {
+
     ui->info_list->insertItem(out2line++,str);
+
+
 }
 
 void MainWindow::on_GetButton_clicked()
@@ -127,7 +139,6 @@ void MainWindow::on_GetButton_clicked()
     }
     std::cout<<ip_str.toStdString()<<" "<<IP_Address<<std::endl;
     this->sendARP(IP_Address);
-    thread.start();
     ui->GetButton->setEnabled(false);
     ui->BackButton->setEnabled(true);
 
