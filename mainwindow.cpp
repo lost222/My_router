@@ -112,7 +112,14 @@ void MainWindow::sendARP(unsigned int IP_Address)
     for(int i=0;i<6;i++){
         send_mac_ram[i] = 0x0f;
     }
-    sendARP_base(0xf0f00,send_mac_ram,sendIP);
+
+    QString fake_ip_str = "192.168.213.5";
+    unsigned int fake_ip = 0;
+    QStringList fake_ip_str_sp = fake_ip_str.split('.');
+    for(int i=0; i<4;i++){
+        fake_ip += fake_ip_str_sp[i].toInt()<<(24 - 8*i);
+    }
+    sendARP_base(fake_ip,send_mac_ram,sendIP);
     thread.start();
     while(!(this->Info.ip_to_mac.contains(sendIP))); //busy wait
     QVector<BYTE> send_mac = Info.ip_to_mac.value(sendIP);
