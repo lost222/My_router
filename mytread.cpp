@@ -55,15 +55,19 @@ void MyThread::run()
                     if(r_mac[i] != 0){is_ze = false;}
                 }
                 if(is_ze){continue;}
-                r_ip = IPPacket->RecvIP; //don't know why but no need to trans
 
-                if ( p_Info->ip_to_mac.contains(r_ip) ){continue;}
+                // change 2 send
+                r_ip = ntohl(IPPacket->SendIP); //don't know why but no need to trans
+
+//                if ( p_Info->ip_to_mac.contains(r_ip) ){continue;}
+
                 QVector<BYTE> mac_vec(6);
+                r_mac = (BYTE *)&(IPPacket->SendHa);
                 for(int i=0; i<6;i++){
                     mac_vec[i] = r_mac[i];
                 }
                 p_Info->ip_to_mac[r_ip] = mac_vec;
-                str.sprintf("%s  -->  %x-%x-%x-%x-%x-%x",p_Info->iptos(r_ip),
+                str.sprintf("%s  -->  %x-%x-%x-%x-%x-%x",p_Info->iptos(htonl(r_ip)),
                             r_mac[0], r_mac[1], r_mac[2], r_mac[3], r_mac[4], r_mac[5]);
                 emit stringChanged(str);
             }

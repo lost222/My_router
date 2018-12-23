@@ -14,8 +14,8 @@ public:
     void set_listen_dev(int devid);
     int get_dev(){return listen_dev;}
     GETINFO* p_Info;
-protected:
     void run();
+protected:
 private:
     volatile bool stopped;
     volatile int listen_dev;

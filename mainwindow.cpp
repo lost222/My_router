@@ -22,7 +22,8 @@ MainWindow::MainWindow(QWidget *parent) :
     // connect mythread to mainWindow
     connect(&thread, SIGNAL(stringChanged(QString)),
     this, SLOT(changeString(QString)));
-
+//    p_timer = new QTimer();
+//    connect(p_timer, SIGNAL(timeout()), this, SLOT(when_time_out()));
 }
 
 
@@ -49,6 +50,7 @@ void MainWindow::on_dev_list_currentRowChanged(int currentRow)
         ui->desc_info->append(out);
     }
     unsigned int ip_addr = ip_data["Address"];
+
     QVector<BYTE> mac = Info.ip2mac(ip_addr);
     out.sprintf("MAC : %x-%x-%x-%x-%x-%x", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
     ui->desc_info->append(out);
@@ -107,21 +109,31 @@ void MainWindow::sendARP(unsigned int IP_Address)
 {
     QMap<QString, unsigned int> ip_info = Info.get_IP_data(thread.get_dev());
     unsigned int sendIP = ip_info["Address"];
+    sendIP = ntohl(sendIP);
     //QVector<BYTE> send_mac = Info.ip2mac(ip_info["Address"]);
     QVector<BYTE> send_mac_ram(6);
     for(int i=0;i<6;i++){
         send_mac_ram[i] = 0x0f;
     }
 
-    QString fake_ip_str = "192.168.213.5";
+    QString fake_ip_str = "192.168.1.0";
     unsigned int fake_ip = 0;
     QStringList fake_ip_str_sp = fake_ip_str.split('.');
     for(int i=0; i<4;i++){
         fake_ip += fake_ip_str_sp[i].toInt()<<(24 - 8*i);
     }
-    sendARP_base(fake_ip,send_mac_ram,sendIP);
     thread.start();
-    while(!(this->Info.ip_to_mac.contains(sendIP))); //busy wait
+    sendARP_base(fake_ip,send_mac_ram,sendIP);
+//    sendARP_base(fake_ip,send_mac_ram,sendIP);
+//    thread.run();
+
+    while(!(this->Info.ip_to_mac.contains(sendIP))){
+        sendARP_base(fake_ip,send_mac_ram,sendIP);
+        Sleep(500);
+        printf("busy waiting");
+    }
+        //busy wait
+
     QVector<BYTE> send_mac = Info.ip_to_mac.value(sendIP);
 
     sendARP_base(sendIP,send_mac, IP_Address);
@@ -159,4 +171,16 @@ void MainWindow::on_BackButton_clicked()
         ui->BackButton->setEnabled(false);
     }
 
+}
+
+//void MainWindow::when_time_out()
+//{
+//    this->sendARP_base();
+//}
+
+void MainWindow::Sleep(int msec)
+{
+    QTime dieTime = QTime::currentTime().addMSecs(msec);
+    while( QTime::currentTime() < dieTime )
+        QCoreApplication::processEvents(QEventLoop::AllEvents, 100);
 }

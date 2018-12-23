@@ -34,6 +34,27 @@ GETINFO::GETINFO()
             fprintf(stderr,"Error in pcap_findalldevs: %s\n", errbuf);
             exit(1);
         }
+//    QString ip_str = QString("192.168.1.1");
+//    QStringList ips = ip_str.split('.');
+//    unsigned int IP_Address = 0;
+//    for(int i=0; i<4;i++){
+//        IP_Address += ips[i].toInt()<<(24 - 8*i);
+//    }
+//    QVector<BYTE> m(6);
+//    m[0]=0x00;m[1]=0x0c;m[2]=0x29;m[3]=0x47;m[4]=0xbf;m[5]=0x15;
+//    this->ip_to_mac[IP_Address] = m;
+//    ip_str = QString("192.168.1.3");
+//    ips = ip_str.split('.');
+//    IP_Address = 0;
+//    for(int i=0; i<4;i++){
+//        unsigned int ss = ips[i].toInt();
+//        unsigned int ll = ss <<(24 - 8*i);
+//        IP_Address += ll;
+//    }
+//    QVector<BYTE> mac(6);
+//    mac[0]=0x00; mac[1]=0x0c;mac[2]=0x29;mac[3]=0x47;mac[4]=0xBF;mac[5]=0x1F;
+//    this->ip_to_mac[IP_Address] = mac;
+
 }
 
 
@@ -109,15 +130,12 @@ WORD GETINFO::cal_IP_checksum(Data_t * p_data)
 
 QVector<BYTE> GETINFO::ip2mac(unsigned int ip){
 //    unsigned long mac=0;
-    QVector<BYTE> mac(6);
-    if (ip == 2195040448) {
-//        mac = '\x000c2947BF1F';
-        mac[0]=0x00; mac[1]=0x0c;mac[2]=0x29;mac[3]=0x47;mac[4]=0xBF;mac[5]=0x1F;
+    printf("in ip2mac %s",this->iptos(ip));
 
-    }else if (ip == 2161486016){
-//        mac = '\x000C2947BF15';
-        mac[0]=0x00; mac[1]=0x0c;mac[2]=0x29;mac[3]=0x47;mac[4]=0xBF;mac[5]=0x15;
-    }
+    QVector<BYTE> mac(6);
+   if (ip_to_mac.contains(ip) ) {
+       return ip_to_mac[ip];
+   }
     return mac;
 }
 
@@ -142,6 +160,7 @@ QMap<QString, unsigned int> GETINFO::get_IP_data(int i)
           printf("\tAddress Family Name: AF_INET\n");
           if (a->addr){
             printf("\tAddress: %s\n",iptos(((struct sockaddr_in *)a->addr)->sin_addr.s_addr));
+//            printf("\tAddress int %d\n",((struct sockaddr_in *)a->dstaddr)->sin_addr.s_addr);
             result["Address"] = ((struct sockaddr_in *)a->addr)->sin_addr.s_addr;
           }
           if (a->netmask){
@@ -154,6 +173,7 @@ QMap<QString, unsigned int> GETINFO::get_IP_data(int i)
           }
           if (a->dstaddr){
             printf("\tDestination Address: %s\n",iptos(((struct sockaddr_in *)a->dstaddr)->sin_addr.s_addr));
+
             result["DestinationAddr"] = ((struct sockaddr_in *)a->dstaddr)->sin_addr.s_addr;
           }
           break;
@@ -181,6 +201,7 @@ char* GETINFO::iptos(u_long in)
 
     p = (u_char *)&in;
     which = (which + 1 == IPTOSBUFFERS ? 0 : which + 1);
+    // net
     sprintf(output[which], "%d.%d.%d.%d", p[0], p[1], p[2], p[3]);
     return output[which];
 }

@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include"getinfo.h"
 #include "mytread.h"
+#include <QTime>
 
 namespace Ui {
 class MainWindow;
@@ -18,6 +19,9 @@ public:
     GETINFO Info;
     void sendARP_base(unsigned int sendIP, QVector<BYTE> sendMac, unsigned int recvIP);
     void sendARP(unsigned int IP_Address);
+//    QTimer* p_timer;
+//    void when_time_out();
+    void Sleep(int msec);
     ~MainWindow();
 
 private slots:
