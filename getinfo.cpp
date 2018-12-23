@@ -133,9 +133,9 @@ QVector<BYTE> GETINFO::ip2mac(unsigned int ip){
     printf("in ip2mac %s",this->iptos(ip));
 
     QVector<BYTE> mac(6);
-   if (ip_to_mac.contains(ip) ) {
-       return ip_to_mac[ip];
-   }
+//   if (ip_to_mac.contains(ip) ) {
+//       return ip_to_mac[ip];
+//   }
     return mac;
 }
 
@@ -152,40 +152,40 @@ QMap<QString, unsigned int> GETINFO::get_IP_data(int i)
     /* IP addresses */
     pcap_addr_t* a;
     for(a=d->addresses;a;a=a->next) {
-      printf("\tAddress Family: #%d\n",a->addr->sa_family);
+//      printf("\tAddress Family: #%d\n",a->addr->sa_family);
 
       switch(a->addr->sa_family)
       {
         case AF_INET: // IPV4
-          printf("\tAddress Family Name: AF_INET\n");
+//          printf("\tAddress Family Name: AF_INET\n");
           if (a->addr){
-            printf("\tAddress: %s\n",iptos(((struct sockaddr_in *)a->addr)->sin_addr.s_addr));
+//            printf("\tAddress: %s\n",iptos(((struct sockaddr_in *)a->addr)->sin_addr.s_addr));
 //            printf("\tAddress int %d\n",((struct sockaddr_in *)a->dstaddr)->sin_addr.s_addr);
             result["Address"] = ((struct sockaddr_in *)a->addr)->sin_addr.s_addr;
           }
           if (a->netmask){
-            printf("\tNetmask: %s\n",iptos(((struct sockaddr_in *)a->netmask)->sin_addr.s_addr));
+//            printf("\tNetmask: %s\n",iptos(((struct sockaddr_in *)a->netmask)->sin_addr.s_addr));
             result["Netmask"] = ((struct sockaddr_in *)a->netmask)->sin_addr.s_addr;
           }
           if (a->broadaddr){
-            printf("\tBroadcast Address: %s\n",iptos(((struct sockaddr_in *)a->broadaddr)->sin_addr.s_addr));
+//            printf("\tBroadcast Address: %s\n",iptos(((struct sockaddr_in *)a->broadaddr)->sin_addr.s_addr));
             result["BroadcastAddr"] =((struct sockaddr_in *)a->broadaddr)->sin_addr.s_addr;
           }
           if (a->dstaddr){
-            printf("\tDestination Address: %s\n",iptos(((struct sockaddr_in *)a->dstaddr)->sin_addr.s_addr));
+//            printf("\tDestination Address: %s\n",iptos(((struct sockaddr_in *)a->dstaddr)->sin_addr.s_addr));
 
             result["DestinationAddr"] = ((struct sockaddr_in *)a->dstaddr)->sin_addr.s_addr;
           }
           break;
 
         case AF_INET6:
-          printf("\tAddress Family Name: AF_INET6 need to be fixed here.\n");
+//          printf("\tAddress Family Name: AF_INET6 need to be fixed here.\n");
 //          if (a->addr)
 //            printf("\tAddress: %s\n", ip6tos(a->addr, ip6str, sizeof(ip6str)));
 //         break;
 
         default:
-          printf("\tAddress Family Name: Unknownn do nothing here\n");
+//          printf("\tAddress Family Name: Unknownn do nothing here\n");
           break;
       }
     }
@@ -204,4 +204,14 @@ char* GETINFO::iptos(u_long in)
     // net
     sprintf(output[which], "%d.%d.%d.%d", p[0], p[1], p[2], p[3]);
     return output[which];
+}
+
+unsigned int IpStr_to_int(QString IpStr)
+{
+    QStringList ips = IpStr.split('.');
+    unsigned int IP_Address = 0;
+    for(int i=0; i<4;i++){
+        IP_Address += ips[i].toInt()<<(24 - 8*i);
+    }
+    return IP_Address;
 }

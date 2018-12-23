@@ -13,15 +13,24 @@ public:
     void stop();
     void set_listen_dev(int devid);
     int get_dev(){return listen_dev;}
+    unsigned int listenIp;
     GETINFO* p_Info;
-    void run();
+    QMap<unsigned int, QVector<BYTE> > arp_table;
+    QVector<QVector<unsigned int> > route_table;
+    int check_route_table(unsigned int ip);
+
 protected:
+    void run();
 private:
     volatile bool stopped;
     volatile int listen_dev;
+    void deal_with_arp_datagram(struct ARPFrame_t *);
+    void deal_with_other_datagram(struct Data_t *);
 
 signals:
 void stringChanged(const QString &);
+void get_arp_datagram(const QString &);
+void trans_datagram(struct Data_t *);
 
 public slots:
 };

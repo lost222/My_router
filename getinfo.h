@@ -59,7 +59,7 @@ typedef struct ARPFrame_t{
 
 #pragma pack()
 
-
+unsigned int IpStr_to_int(QString IpStr);
 
 
 class GETINFO
@@ -79,7 +79,7 @@ public:
     pcap_t* open_dev(int i);
     WORD cal_IP_checksum(Data_t *);
     QMap<QString, unsigned int> get_IP_data(int i);
-    QMap<unsigned int, QVector<BYTE> > ip_to_mac;
+
     char *iptos(u_long in);
 
 };

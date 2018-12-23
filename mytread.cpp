@@ -32,8 +32,6 @@ void MyThread::run()
         ARPFrame_t* IPPacket;
         BYTE* DESMAC;BYTE* SRCMAC;
         WORD* Frame_type;
-        BYTE* r_mac;
-        DWORD r_ip;
 
         while((res = pcap_next_ex( dev, &header, &pkt_data)) >= 0 && !stopped){
                 if(res == 0)
@@ -45,31 +43,12 @@ void MyThread::run()
                 SRCMAC = IPPacket->FrameHeade.SrcMAC;
                 Frame_type = &(IPPacket->FrameHeade.FrameType);
                 WORD Frame_type_real = ntohs(*Frame_type);
-                if (Frame_type_real != 0x0806) {continue;}
-
-                // get IP -> Mac
-                QString str = "";
-                r_mac = (BYTE *)&(IPPacket->recvHa);
-                bool is_ze = true;
-                for(int i=0;i<6;i++){
-                    if(r_mac[i] != 0){is_ze = false;}
+                if (Frame_type_real == 0x0806){
+                    deal_with_arp_datagram(IPPacket);
+                } else if (Frame_type_real == 0x0800){
+//                    printf("\t%d\n",res);
+                    deal_with_other_datagram((Data_t*)pkt_data);
                 }
-                if(is_ze){continue;}
-
-                // change 2 send
-                r_ip = ntohl(IPPacket->SendIP); //don't know why but no need to trans
-
-//                if ( p_Info->ip_to_mac.contains(r_ip) ){continue;}
-
-                QVector<BYTE> mac_vec(6);
-                r_mac = (BYTE *)&(IPPacket->SendHa);
-                for(int i=0; i<6;i++){
-                    mac_vec[i] = r_mac[i];
-                }
-                p_Info->ip_to_mac[r_ip] = mac_vec;
-                str.sprintf("%s  -->  %x-%x-%x-%x-%x-%x",p_Info->iptos(htonl(r_ip)),
-                            r_mac[0], r_mac[1], r_mac[2], r_mac[3], r_mac[4], r_mac[5]);
-                emit stringChanged(str);
             }
             if(res == -1){
                 QString errstr = "";
@@ -88,4 +67,92 @@ void MyThread::stop()
 void MyThread::set_listen_dev(int devid)
 {
     listen_dev = devid;
+}
+
+
+void MyThread::deal_with_arp_datagram(ARPFrame_t *IPPacket)
+{
+    BYTE* r_mac;
+    DWORD r_ip;
+    r_mac = (BYTE *)&(IPPacket->recvHa);
+    bool is_ze = true;
+    for(int i=0;i<6;i++){
+        if(r_mac[i] != 0){is_ze = false;}
+    }
+    if(is_ze){return;}
+
+    // change 2 send
+    r_ip = ntohl(IPPacket->SendIP); //don't know why but no need to trans
+
+
+    QVector<BYTE> mac_vec(6);
+    r_mac = (BYTE *)&(IPPacket->SendHa);
+    for(int i=0; i<6;i++){
+        mac_vec[i] = r_mac[i];
+    }
+    if ( arp_table.contains(r_ip) && arp_table.value(r_ip) == mac_vec ){return;}
+
+    arp_table[r_ip] = mac_vec;
+
+    QString str = "";
+    str.sprintf("%s  -->  %x-%x-%x-%x-%x-%x",p_Info->iptos(htonl(r_ip)),
+                r_mac[0], r_mac[1], r_mac[2], r_mac[3], r_mac[4], r_mac[5]);
+    emit get_arp_datagram(str);
+}
+
+
+void MyThread::deal_with_other_datagram(Data_t *IPPacket)
+{
+    unsigned int fromIP = ntohl(IPPacket->IPHeader.SrcIP);
+    unsigned int toIp = ntohl(IPPacket->IPHeader.DesIP);
+    QString fromIpstr = QString(p_Info->iptos(IPPacket->IPHeader.SrcIP));
+    QString toIpstr = QString(p_Info->iptos(IPPacket->IPHeader.DesIP));
+    QString thstr = QString(p_Info->iptos(htonl(this->listenIp)));
+
+    // 来源IP不在我的管辖区域
+    int ans = check_route_table(fromIP);
+    if (ans == -1) {return ;}
+
+    //去往IP在我的管辖范围
+    int ans2 = check_route_table(toIp);
+    if( ans2 != -1) {return ;}
+
+    // 目的MAC 不是我
+    if (arp_table.contains(listenIp)) {
+        BYTE *desMac = IPPacket->FrameHeade.DesMAC;
+        QVector<BYTE> my_MAC = arp_table.value(listenIp);
+//        bool isSendToMe = true;
+        for(int i=0; i<6; i++){
+            if (my_MAC.at(i) != desMac[i]) {
+                return ;
+            }
+        }
+    }
+
+    emit trans_datagram(IPPacket);
+}
+
+
+int MyThread::check_route_table(unsigned int ip)
+{
+
+    QVector<unsigned int> results;
+    for(int i=0; i<route_table.size();i++) {
+        unsigned int netId = ip&route_table[i].at(1);
+        if (netId == route_table[i].at(0)) {
+            results.append(i);
+        }
+    }
+    if (results.size() == 0) {
+        return -1;
+    }
+    int realResult = results.at(0);
+    for(int i=0; i<results.size(); i++) {
+        int row = results.at(i);
+        if ( route_table.at(realResult).at(1) < route_table.at(row).at(1) ) {
+            realResult = row ;
+        }
+    }
+    return realResult;
+
 }
