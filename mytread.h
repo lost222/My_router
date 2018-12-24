@@ -18,6 +18,7 @@ public:
     QMap<unsigned int, QVector<BYTE> > arp_table;
     QVector<QVector<unsigned int> > route_table;
     int check_route_table(unsigned int ip);
+    int find_route_info(QVector<unsigned int> &);
 
 protected:
     void run();

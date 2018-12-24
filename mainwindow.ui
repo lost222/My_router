@@ -14,12 +14,9 @@
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralWidget">
-   <layout class="QGridLayout" name="gridLayout">
-    <item row="1" column="0" colspan="4">
-     <widget class="QListWidget" name="info_list"/>
-    </item>
-    <item row="0" column="0" colspan="4">
-     <layout class="QHBoxLayout" name="horizontalLayout">
+   <layout class="QVBoxLayout" name="verticalLayout_4">
+    <item>
+     <layout class="QVBoxLayout" name="verticalLayout_3">
       <item>
        <layout class="QVBoxLayout" name="verticalLayout">
         <item>
@@ -30,49 +27,49 @@
          </widget>
         </item>
         <item>
-         <widget class="QTextEdit" name="adapter1Show"/>
-        </item>
-       </layout>
-      </item>
-      <item>
-       <layout class="QVBoxLayout" name="verticalLayout_3">
-        <item>
-         <widget class="QLabel" name="label_desc">
-          <property name="text">
-           <string>TextLabel</string>
-          </property>
-         </widget>
+         <widget class="QListWidget" name="thread_route"/>
         </item>
         <item>
-         <widget class="QTextBrowser" name="adapter2Show"/>
+         <layout class="QVBoxLayout" name="verticalLayout_2">
+          <item>
+           <widget class="QLabel" name="label_desc">
+            <property name="text">
+             <string>TextLabel</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QListWidget" name="adapter2_route"/>
+          </item>
+         </layout>
         </item>
        </layout>
       </item>
      </layout>
     </item>
-    <item row="2" column="1">
-     <widget class="QLineEdit" name="IP_input"/>
+    <item>
+     <widget class="QListWidget" name="info_list"/>
     </item>
-    <item row="2" column="3">
-     <widget class="QPushButton" name="BackButton">
-      <property name="text">
-       <string>BACK</string>
-      </property>
-     </widget>
-    </item>
-    <item row="2" column="0">
-     <widget class="QLabel" name="label_ipinput">
-      <property name="text">
-       <string>TextLabel</string>
-      </property>
-     </widget>
-    </item>
-    <item row="2" column="2">
-     <widget class="QPushButton" name="GetButton">
-      <property name="text">
-       <string>GET</string>
-      </property>
-     </widget>
+    <item>
+     <layout class="QHBoxLayout" name="horizontalLayout">
+      <item>
+       <widget class="QLineEdit" name="IP_input"/>
+      </item>
+      <item>
+       <widget class="QPushButton" name="GetButton">
+        <property name="text">
+         <string>ACTION</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="BackButton">
+        <property name="text">
+         <string>STOP</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
     </item>
    </layout>
   </widget>

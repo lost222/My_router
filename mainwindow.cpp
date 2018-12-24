@@ -9,9 +9,9 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    ui->label_devs->setText("DEVS");
-    ui->label_desc->setText("Describe Info");
-    ui->label_ipinput->setText("INPUT IP");
+    ui->label_devs->setText("Adapter1 route table");
+    ui->label_desc->setText("Adapter2 route table");
+
 //    GETINFO Info;
 //    QVector<QString> dev_list = Info.dev_list();
 //    for(int i=0; i<dev_list.size(); i++){
@@ -23,21 +23,27 @@ MainWindow::MainWindow(QWidget *parent) :
     QMap<QString, unsigned int> ip_info = Info.get_IP_data(thread.get_dev());
     thread.listenIp = ntohl(ip_info["Address"]);
 
+    unsigned int base_mark = IpStr_to_int(QString("255.255.255.0"));
+    unsigned int base_net = thread.listenIp & base_mark;
+
 
     QVector<unsigned int> routeinfo(3);
-    routeinfo[0] = IpStr_to_int(QString("192.168.2.0"));
-    routeinfo[1] = IpStr_to_int(QString("255.255.255.0"));
-    routeinfo[2] = IpStr_to_int(QString("192.168.2.0"));
+    routeinfo[0] = base_net;
+    routeinfo[1] = base_mark;
+    routeinfo[2] = base_net;
     thread.route_table.append(routeinfo);
+
 
     adapter2.p_Info = &Info;
     adapter2.set_listen_dev(2);
     ip_info = Info.get_IP_data(adapter2.get_dev());
     adapter2.listenIp = ntohl(ip_info["Address"]);
+    unsigned int base_2_net = adapter2.listenIp & base_mark;
+
     QVector<unsigned int> routeinfo2(3);
-    routeinfo2[0] = IpStr_to_int(QString("192.168.1.0"));
-    routeinfo2[1] = IpStr_to_int(QString("255.255.255.0"));
-    routeinfo2[2] = IpStr_to_int(QString("192.168.1.0"));
+    routeinfo2[0] = base_2_net;
+    routeinfo2[1] = base_mark;
+    routeinfo2[2] = base_2_net;
     adapter2.route_table.append(routeinfo2);
 
 
@@ -253,15 +259,45 @@ void MainWindow::changeString(const QString &str)
 
 void MainWindow::on_GetButton_clicked()
 {
-    QString ip_str = ui->IP_input->text();
-    QStringList ips = ip_str.split('.');
-    unsigned int IP_Address = 0;
-    for(int i=0; i<4;i++){
-        IP_Address += ips[i].toInt()<<(24 - 8*i);
+    QString code_str = ui->IP_input->text();
+    QStringList ips = code_str.split(' ');
+    if (ips[0] == QString("add") && ips.size()>3) {
+        QString ip_str = ips.at(1);
+        unsigned int ipnet = IpStr_to_int(ip_str);
+        QString mask_str = ips.at(2);
+        unsigned int mask = IpStr_to_int(mask_str);
+        QString next_str = ips.at(3);
+        unsigned int next_jump = IpStr_to_int(next_str);
+        if (thread.check_route_table(next_jump) > -1 ) {
+            QVector<unsigned int> route_info(3);
+            route_info[0] = ipnet; route_info[1] = mask; route_info[2] = next_jump;
+            thread.route_table.append(route_info);
+        } else if (adapter2.check_route_table(next_jump) > -1) {
+            QVector<unsigned int> route_info(3);
+            route_info[0] = ipnet; route_info[1] = mask; route_info[2] = next_jump;
+            adapter2.route_table.append(route_info);
+        }
+
+    }else if (ips[0] == QString("del") && ips.size()>3) {
+        QString ip_str = ips.at(1);
+        unsigned int ipnet = IpStr_to_int(ip_str);
+        QString mask_str = ips.at(2);
+        unsigned int mask = IpStr_to_int(mask_str);
+        QString next_str = ips.at(3);
+        unsigned int next_jump = IpStr_to_int(next_str);
+        QVector<unsigned int> route_info(3);
+        route_info[0] = ipnet; route_info[1] = mask; route_info[2] = next_jump;
+        int where = thread.find_route_info(route_info);
+        int where2 = adapter2.find_route_info(route_info);
+        if (where > -1) {
+            thread.route_table.remove(where);
+        } else if (where2 > -1) {
+            adapter2.route_table.remove(where);
+        }
+
     }
-    std::cout<<ip_str.toStdString()<<" "<<IP_Address<<std::endl;
-//    this->sendARP(IP_Address);
-    ui->GetButton->setEnabled(false);
+    this->show_route_table();
+//    ui->GetButton->setEnabled(false);
     ui->BackButton->setEnabled(true);
 
 }
@@ -311,9 +347,6 @@ void MainWindow::deal_trans_datagram(Data_t *datagram)
     unsigned int from_ip = ntohl(datagram->IPHeader.SrcIP);
 
     //
-//    if (to_ip == thread.listenIp || to_ip == adapter2.listenIp ) {
-//        return ;
-//    }
 
 //    if (from_ip == thread.listenIp || from_ip == adapter2.listenIp ) {
 //        return ;
@@ -321,6 +354,9 @@ void MainWindow::deal_trans_datagram(Data_t *datagram)
 
 
     MyThread * recv_adapter = (MyThread *)sender();
+
+
+
 
     QString fromIp = QString(Info.iptos(datagram->IPHeader.SrcIP));
     QString toIpstr = QString(Info.iptos(datagram->IPHeader.DesIP));
@@ -341,6 +377,11 @@ void MainWindow::deal_trans_datagram(Data_t *datagram)
 
     // 不转发目的是本地的
 
+    if (to_ip == thread.listenIp || to_ip == adapter2.listenIp ) {
+        int adpterNum = recv_adapter->get_dev();
+        send_data_use_ip(to_ip, datagram, len, adpterNum);
+        return ;
+    }
 
     // 查表
     int where = thread.check_route_table(to_ip);
@@ -368,4 +409,29 @@ void MainWindow::deal_trans_datagram(Data_t *datagram)
     }
 
 
+}
+
+
+
+void MainWindow::show_route_table()
+{
+    this->ui->thread_route->clear();
+    this->ui->adapter2_route->clear();
+
+    for(int i=0; i<thread.route_table.size();i++) {
+        QVector<unsigned int> inf = thread.route_table.at(i);
+        QString route_info = QString("").sprintf("%s    ;MASK %s;   %s",
+                                                 Info.iptos(htonl(inf.at(0))),
+                                                            Info.iptos(htonl(inf.at(1))),
+                                                                       Info.iptos(htonl(inf.at(2))));
+        this->ui->thread_route->insertItem(i,route_info);
+    }
+    for(int i=0; i<adapter2.route_table.size();i++) {
+        QVector<unsigned int> inf = adapter2.route_table.at(i);
+        QString route_info = QString("").sprintf("%s    ;MASK %s;   %s",
+                                                 Info.iptos(htonl(inf.at(0))),
+                                                            Info.iptos(htonl(inf.at(1))),
+                                                                       Info.iptos(htonl(inf.at(2))));
+        this->ui->adapter2_route->insertItem(i,route_info);
+    }
 }

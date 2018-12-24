@@ -156,3 +156,15 @@ int MyThread::check_route_table(unsigned int ip)
     return realResult;
 
 }
+
+
+int MyThread::find_route_info(QVector<unsigned int> &info)
+{
+    for(int i=0; i<route_table.size();i++) {
+        QVector<unsigned int> re = route_table.at(i);
+        if(re.at(0)==info.at(0) && re.at(1)==info.at(1) && re.at(2) == info.at(2)) {
+            return i;
+        }
+    }
+    return -1;
+}

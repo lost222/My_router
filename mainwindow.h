@@ -20,9 +20,7 @@ public:
     void sendARP_base(unsigned int sendIP, QVector<BYTE> sendMac, unsigned int recvIP, int adapterNum);
     void sendARP(unsigned int IP_Address, int adapterNum);
     void send_data_use_ip(unsigned int IP_Address, Data_t* datagram, unsigned int lenth, int adapterNum);
-//    QVector<QVector<unsigned int> > router_route_table;
-//    QTimer* p_timer;
-//    void when_time_out();
+    void show_route_table();
     void Sleep(int msec);
     ~MainWindow();
 
@@ -40,11 +38,16 @@ private slots:
     void on_BackButton_clicked();
 
     void deal_trans_datagram(struct Data_t *);
+
+
+
+
 private:
     Ui::MainWindow *ui;
     MyThread thread;
     MyThread adapter2;
     int out2line;
+
 };
 
 #endif // MAINWINDOW_H
