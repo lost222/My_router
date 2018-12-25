@@ -33,6 +33,9 @@ void MyThread::run()
         BYTE* DESMAC;BYTE* SRCMAC;
         WORD* Frame_type;
 
+
+
+
         while((res = pcap_next_ex( dev, &header, &pkt_data)) >= 0 && !stopped){
                 if(res == 0)
                     /* Timeout elapsed */
@@ -82,8 +85,7 @@ void MyThread::deal_with_arp_datagram(ARPFrame_t *IPPacket)
     if(is_ze){return;}
 
     // change 2 send
-    r_ip = ntohl(IPPacket->SendIP); //don't know why but no need to trans
-
+    r_ip = ntohl(IPPacket->SendIP);
 
     QVector<BYTE> mac_vec(6);
     r_mac = (BYTE *)&(IPPacket->SendHa);
@@ -110,12 +112,12 @@ void MyThread::deal_with_other_datagram(Data_t *IPPacket)
     QString thstr = QString(p_Info->iptos(htonl(this->listenIp)));
 
     // 来源IP不在我的管辖区域
-    int ans = check_route_table(fromIP);
-    if (ans == -1) {return ;}
+//    int ans = check_route_table(fromIP);
+//    if (ans == -1) {return ;}
 
-    //去往IP在我的管辖范围
-    int ans2 = check_route_table(toIp);
-    if( ans2 != -1) {return ;}
+//    //去往IP在我的管辖范围
+//    int ans2 = check_route_table(toIp);
+//    if( ans2 != -1) {return ;}
 
     // 目的MAC 不是我
     if (arp_table.contains(listenIp)) {

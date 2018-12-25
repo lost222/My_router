@@ -33,6 +33,16 @@ MainWindow::MainWindow(QWidget *parent) :
     routeinfo[2] = base_net;
     thread.route_table.append(routeinfo);
 
+    unsigned int wr_ip = IpStr_to_int(QString("206.1.3.0"));
+    unsigned int next_ip = IpStr_to_int(QString("206.1.2.2"));
+    QVector<unsigned int> routeinfo_wr(3);
+    routeinfo_wr[0] = wr_ip;
+    routeinfo_wr[1] = base_mark;
+    routeinfo_wr[2] = next_ip;
+    thread.route_table.append(routeinfo_wr);
+
+
+
 
     adapter2.p_Info = &Info;
     adapter2.set_listen_dev(2);
@@ -150,7 +160,7 @@ void MainWindow::sendARP_base(unsigned int sendIP, QVector<BYTE> sendMac, unsign
     {
         std::cout<<"ERR SENDING"<<std::endl;
     }else{
-        std::cout<<"GOOD SEND !"<<std::endl;
+        std::cout<<"GOOD SEND ! WHO IS"<<Info.iptos(htonl(recvIP))<<std::endl;
     }
 }
 
@@ -163,9 +173,11 @@ void MainWindow::sendARP(unsigned int IP_Address, int adapterNum)
         send_adapter = &adapter2;
     }
 
-    QMap<QString, unsigned int> ip_info = Info.get_IP_data(send_adapter->get_dev());
-    unsigned int sendIP = ip_info["Address"];
-    sendIP = ntohl(sendIP);
+    //QMap<QString, unsigned int> ip_info = Info.get_IP_data(send_adapter->get_dev());
+    //unsigned int sendIP = ip_info["Address"];
+    unsigned int sendIP = send_adapter->listenIp;
+
+    //sendIP = ntohl(sendIP);
 
     QVector<BYTE> send_mac_ram(6);
     for(int i=0;i<6;i++){
@@ -240,7 +252,9 @@ void MainWindow::send_data_use_ip(unsigned int IP_Address, Data_t *datagram, uns
     {
         std::cout<<"ERR SENDING"<<std::endl;
     }else{
-        std::cout<<"GOOD SEND !"<<std::endl;
+        std::cout<<"TRANS DATA TO"<<Info.iptos(IP_Address)<<std::endl;
+        QString transInfo =QString("Trans data TO  ") + QString("").sprintf("%s use adapter %d", Info.iptos(htonl(IP_Address)), send_adapter->get_dev());
+        this->ui->info_list->insertItem(out2line++,transInfo);
     }
 
 }
@@ -299,6 +313,15 @@ void MainWindow::on_GetButton_clicked()
     this->show_route_table();
 //    ui->GetButton->setEnabled(false);
     ui->BackButton->setEnabled(true);
+    if (!thread.arp_table.contains(thread.listenIp)) {
+        QVector<BYTE> send_mac_ram(6);
+        for(int i=0;i<6;i++){
+            send_mac_ram[i] = 0x0f;
+        }
+        sendARP_base(ntohl(thread.listenIp+1),send_mac_ram,thread.listenIp, thread.get_dev());
+        sendARP_base(ntohl(adapter2.listenIp+1),send_mac_ram,adapter2.listenIp, adapter2.get_dev());
+    }
+
 
 }
 
@@ -352,11 +375,13 @@ void MainWindow::deal_trans_datagram(Data_t *datagram)
 //        return ;
 //    }
 
+    if (to_ip == thread.listenIp || to_ip == adapter2.listenIp ) {
+//        int adpterNum = recv_adapter->get_dev();
+//        send_data_use_ip(to_ip, datagram, len, adpterNum);
+        return ;
+    }
 
     MyThread * recv_adapter = (MyThread *)sender();
-
-
-
 
     QString fromIp = QString(Info.iptos(datagram->IPHeader.SrcIP));
     QString toIpstr = QString(Info.iptos(datagram->IPHeader.DesIP));
@@ -377,11 +402,7 @@ void MainWindow::deal_trans_datagram(Data_t *datagram)
 
     // 不转发目的是本地的
 
-    if (to_ip == thread.listenIp || to_ip == adapter2.listenIp ) {
-        int adpterNum = recv_adapter->get_dev();
-        send_data_use_ip(to_ip, datagram, len, adpterNum);
-        return ;
-    }
+
 
     // 查表
     int where = thread.check_route_table(to_ip);
