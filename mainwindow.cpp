@@ -306,7 +306,7 @@ void MainWindow::on_GetButton_clicked()
         if (where > -1) {
             thread.route_table.remove(where);
         } else if (where2 > -1) {
-            adapter2.route_table.remove(where);
+            adapter2.route_table.remove(where2);
         }
 
     }
