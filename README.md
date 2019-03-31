@@ -193,6 +193,6 @@ del 206.1.3.0  255.255.255.0  206.2.2.2
 
 ## 程序界面
 
-![router_inter](https://github.com/lost222/My_router/tree/master/image/router_inter.png)
+![router_inter](https://github.com/lost222/My_router/raw/master/image/router_inter.png)
 
 可以通过在对话框里输入指令之后点击`ACTION`完成路由表管理
