@@ -104,7 +104,7 @@ int MyThread::check_route_table(unsigned int ip)
 
 ## 完整的转发流程例子
 
-![routeShow](https://github.com/lost222/My_FTP/tree/master/image/route_show.png)
+![routeShow](https://github.com/lost222/My_router/tree/master/image/route_show.png)
 
 1. 路由程序启动,两个`Thread`类对象init, 拿到自己监听的IP(利用`WinpCap`) 发送伪ARP报文, 获得自己的MAC地址.线程start
 2. 某个网卡接到报文, 判断应不应该转发给主进程
@@ -193,6 +193,6 @@ del 206.1.3.0  255.255.255.0  206.2.2.2
 
 ## 程序界面
 
-![](https://github.com/lost222/My_FTP/tree/master/image/router_inter.png)
+![](https://github.com/lost222/My_router/tree/master/image/router_inter.png)
 
 可以通过在对话框里输入指令之后点击`ACTION`完成路由表管理
